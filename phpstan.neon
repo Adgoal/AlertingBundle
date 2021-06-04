@@ -1,0 +1,11 @@
+includes:
+	- vendor/phpstan/phpstan-mockery/extension.neon
+
+#parameters:
+#	excludes_analyse:
+#	    - src/Infrastructure/Testing/RedisInMemory.php
+#	    - src/Infrastructure/Testing/RedisFactory.php
+
+parameters:
+	ignoreErrors:
+		- "#^Call to an undefined method(.*)$#"

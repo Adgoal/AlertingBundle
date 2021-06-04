@@ -1,0 +1,54 @@
+services:
+
+  AdgoalCommon\Alerting\Domain\Factory\AlertingFactory: ~
+
+  AdgoalCommon\Alerting\Infrastructure\Repository\Processor\AlertingProcessor:
+    arguments:
+      - '@AdgoalCommon\Alerting\Infrastructure\Repository\Query\AlertaRequestQueryRepository'
+      - '@AdgoalCommon\Alerting\Infrastructure\Repository\AlertingRepository'
+      - '%adgoal_alerting.delaytime%'
+
+  AdgoalCommon\Alerting\Infrastructure\Repository\Query\AlertaRequestQueryRepository:
+    arguments:
+      - '@Psr\Http\Client\ClientInterface'
+      - '@Psr\Http\Message\RequestFactoryInterface'
+      - '@alerting.processor.adapter'
+      - '%adgoal_alerting.adapter.attributes%'
+
+  AdgoalCommon\Alerting\Infrastructure\Repository\AlertingRepository:
+    arguments:
+      - '%adgoal_alerting.project_name%'
+      - '@adgoal_alerting.storage_repository'
+      - '@AdgoalCommon\Alerting\Domain\Factory\AlertingFactory'
+      - '@AdgoalCommon\Alerting\Infrastructure\Service\AlertingSerializeService'
+
+  AdgoalCommon\Alerting\Application\Processor\AlertEventProcessor:
+    arguments:
+      - '@AdgoalCommon\Alerting\Infrastructure\Repository\Processor\AlertingProcessor'
+      - '@AdgoalCommon\Alerting\Infrastructure\Repository\AlertingRepository'
+    calls:
+      - [setLogger, ['@logger']]
+    tags:
+      - { name: 'enqueue.topic_subscriber', client: 'all'  }
+      - { name: monolog.logger, channel: Alerting }
+
+  AdgoalCommon\Alerting\Infrastructure\Service\AlertingSerializeService: ~
+
+  tactician.middleware.event.command.alert:
+    class: AdgoalCommon\Alerting\Infrastructure\Event\Publisher\CommandAlertPublisher
+    arguments:
+      - '%adgoal_alerting.project_name%'
+      - '@AdgoalCommon\Alerting\Domain\Factory\AlertingFactory'
+      - '@AdgoalCommon\Alerting\Infrastructure\Repository\AlertingRepository'
+      - '@adgoal.alerting.client_producer'
+    calls:
+      - [setLogger, ['@logger']]
+    tags:
+      - { name: monolog.logger, channel: Alerting }
+
+  ### Http PSR-7 interfaces ###
+  Psr\Http\Client\ClientInterface:
+    factory: 'Http\Factory\Discovery\HttpClient::client'
+  Psr\Http\Message\RequestFactoryInterface:
+    factory: 'Http\Factory\Discovery\HttpFactory::requestFactory'
+
