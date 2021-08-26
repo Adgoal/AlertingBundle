@@ -29,7 +29,6 @@ services:
     calls:
       - [setLogger, ['@logger']]
     tags:
-      - { name: 'enqueue.topic_subscriber', client: 'all'  }
       - { name: monolog.logger, channel: Alerting }
 
   AdgoalCommon\Alerting\Infrastructure\Service\AlertingSerializeService: ~
