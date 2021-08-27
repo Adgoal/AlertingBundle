@@ -51,3 +51,8 @@ services:
   Psr\Http\Message\RequestFactoryInterface:
     factory: 'Http\Factory\Discovery\HttpFactory::requestFactory'
 
+  AdgoalCommon\AlertingBundle\Command\DebugTestAlerting:
+    arguments:
+      - '@tactician.middleware.event.command.alert'
+    tags:
+      - { name: 'console.command' }
